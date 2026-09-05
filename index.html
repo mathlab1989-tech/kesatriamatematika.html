@@ -42,6 +42,35 @@
             border: 1px solid rgba(255, 255, 255, 0.15);
         }
 
+        /* Toko Upgrade & Papan Peringkat memakai background gambar yang sama dengan
+           halaman loading, jadi panel-nya dibuat lebih transparan supaya menyatu
+           dengan gambar tersebut, sementara teks tetap kontras & mudah dibaca
+           berkat blur + shadow. */
+        #upgradeShopModal .glass-panel,
+        #leaderboardModal .glass-panel,
+        #startModal .glass-panel {
+            background: rgba(10, 15, 30, 0.55);
+            backdrop-filter: blur(10px) saturate(120%);
+        }
+        #upgradeShopModal,
+        #leaderboardModal,
+        #startModal {
+            background-color: rgba(2, 6, 23, 0.35);
+        }
+        #upgradeShopModal .glass-panel h2,
+        #leaderboardModal .glass-panel h2,
+        #startModal .glass-panel h1,
+        #upgradeShopModal .glass-panel .text-white,
+        #leaderboardModal .glass-panel .text-white,
+        #startModal .glass-panel .text-white {
+            text-shadow: 0 1px 4px rgba(0, 0, 0, 0.85);
+        }
+        #upgradeShopModal #upgradeShopList > div,
+        #leaderboardModal #leaderboardList,
+        #leaderboardModal .grid.grid-cols-12 {
+            background-color: rgba(10, 15, 30, 0.6) !important;
+        }
+
         .math-card {
             background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
             border: 2px solid #3b82f6;
@@ -102,6 +131,14 @@
             #portraitRotateOverlay {
                 display: flex !important;
             }
+        }
+
+        /* Overlay wajib-putar-layar HARUS tampil paling awal, di atas halaman loading
+           (.intro-screen memiliki z-index 200) maupun modal-modal lain (maks. z-40).
+           Sebelumnya overlay ini memakai z-50 (Tailwind) sehingga tertutup oleh halaman
+           loading saat aplikasi baru dibuka dalam posisi portrait. */
+        #portraitRotateOverlay {
+            z-index: 999 !important;
         }
 
         /* --- Combo Banner --- */
@@ -443,6 +480,20 @@
             .instructions-grid { grid-template-columns: 1fr; }
         }
 
+        /* ===================== Top HUD Bar Spacing ===================== */
+        #hudLeftPanel > * + *,
+        #hudRightPanel > * + * {
+            margin-left: 0.6rem;
+        }
+        .hud-divider { flex-shrink: 0; }
+
+        /* Sembunyikan label teks ("Pasukan:", "Gelombang:", dst) di layar sempit
+           (HP dalam posisi portrait sempit maupun beberapa kondisi lain) supaya HUD
+           tidak melebar melebihi lebar layar dan tidak lagi terpotong. */
+        @media screen and (max-width: 480px) {
+            .hud-label { display: none; }
+        }
+
         /* ===================== Mobile Landscape Fit ===================== *
          * Saat dimainkan di HP dalam posisi Lanscape, tinggi layar seringkali
          * sangat pendek (mis. ~330-430px). Aturan berikut menyusutkan elemen
@@ -461,11 +512,38 @@
             .instr-title { font-size: 10.5px; }
             .instr-desc { font-size: 9.5px; line-height: 1.3; }
             .loading-text { font-size: 10px; }
-            #hpBarContainer { width: 150px !important; top: 46px !important; }
+            #hpBarContainer { width: 150px !important; top: 40px !important; }
             #boomContainer { bottom: 78px !important; }
             #boomBtn { width: 56px !important; height: 56px !important; }
             #joystick-zone { width: 88px; height: 88px; bottom: 12px; left: 12px; }
             #joystick-knob { width: 36px; height: 36px; }
+
+            /* HUD atas dibuat lebih ringkas supaya tidak terpotong di layar HP
+               yang pendek (landscape). Label teks disembunyikan, hanya ikon +
+               angka yang tetap tampil, jarak antar item & padding diperkecil. */
+            .hud-label { display: none; }
+            #hudTopBar { top: 6px !important; left: 6px !important; right: 6px !important; }
+            #hudLeftPanel, #hudRightPanel {
+                padding-left: 0.4rem !important;
+                padding-right: 0.4rem !important;
+                padding-top: 0.25rem !important;
+                padding-bottom: 0.25rem !important;
+                font-size: 9.5px !important;
+            }
+            #hudLeftPanel > * + *, #hudRightPanel > * + * { margin-left: 0.35rem !important; }
+            #hudLeftPanel i, #hudRightPanel i { font-size: 10px !important; }
+            #hudRightPanel button i { font-size: 11px !important; }
+            #playerHUDName { max-width: 40px !important; }
+
+            /* Layar Bermain (setelah klik Bertempur) dibuat benar-benar penuh di HP
+               (tanpa sisa bar hitam kiri/kanan), tidak lagi dikunci ke rasio 16:9. */
+            #gameAspectContainer {
+                width: 100vw !important;
+                height: 100vh !important;
+                max-width: 100vw !important;
+                max-height: 100vh !important;
+                border-radius: 0 !important;
+            }
             #startModal .glass-panel, #upgradeShopModal .glass-panel,
             #leaderboardModal .glass-panel, #gameOverModal .glass-panel,
             #pauseModal .glass-panel { padding: 10px 14px !important; max-height: 94vh; overflow-y: auto; }
@@ -617,60 +695,60 @@
         <canvas id="gameCanvas" width="1280" height="720"></canvas>
 
         <!-- Top HUD Bar -->
-        <div class="absolute top-3 left-3 right-3 flex justify-between items-center pointer-events-none z-10">
+        <div id="hudTopBar" class="absolute top-1.5 md:top-3 left-1.5 md:left-3 right-1.5 md:right-3 flex justify-between items-center pointer-events-none z-10">
             <!-- Squad & Wave Info -->
-            <div class="glass-panel px-3 py-1.5 rounded-xl flex items-center space-x-3 shadow-lg text-xs md:text-sm">
-                <div class="flex items-center space-x-1.5">
+            <div id="hudLeftPanel" class="glass-panel px-2 md:px-3 py-1 md:py-1.5 rounded-xl flex items-center shadow-lg text-[10px] sm:text-xs md:text-sm min-w-0">
+                <div class="flex items-center space-x-1 md:space-x-1.5">
                     <i class="fa-solid fa-user-gear text-cyan-400"></i>
-                    <span id="playerHUDName" class="font-bold text-cyan-200 truncate max-w-[90px]">Pemain</span>
+                    <span id="playerHUDName" class="font-bold text-cyan-200 truncate max-w-[54px] sm:max-w-[90px]">Pemain</span>
                 </div>
-                <div class="h-4 w-px bg-slate-700"></div>
-                <div class="flex items-center space-x-1.5">
+                <div class="hud-divider h-4 w-px bg-slate-700"></div>
+                <div class="flex items-center space-x-1 md:space-x-1.5">
                     <i class="fa-solid fa-users text-blue-400"></i>
-                    <span class="font-bold text-blue-200">Pasukan: <span id="squadCount" class="text-white">1</span></span>
+                    <span class="font-bold text-blue-200"><span class="hud-label">Pasukan: </span><span id="squadCount" class="text-white">1</span></span>
                 </div>
-                <div class="h-4 w-px bg-slate-700"></div>
-                <div class="flex items-center space-x-1.5">
+                <div class="hud-divider h-4 w-px bg-slate-700"></div>
+                <div class="flex items-center space-x-1 md:space-x-1.5">
                     <i class="fa-solid fa-shield-halved text-emerald-400"></i>
-                    <span class="font-bold text-emerald-200">Gelombang: <span id="waveCount" class="text-white">1</span></span>
+                    <span class="font-bold text-emerald-200"><span class="hud-label">Gelombang: </span><span id="waveCount" class="text-white">1</span></span>
                 </div>
-                <div class="h-4 w-px bg-slate-700"></div>
-                <div class="flex items-center space-x-1.5">
+                <div class="hud-divider h-4 w-px bg-slate-700"></div>
+                <div class="flex items-center space-x-1 md:space-x-1.5">
                     <i class="fa-solid fa-fire text-orange-400"></i>
-                    <span class="font-bold text-orange-200">Combo: <span id="comboCount" class="text-white">0</span></span>
+                    <span class="font-bold text-orange-200"><span class="hud-label">Combo: </span><span id="comboCount" class="text-white">0</span></span>
                 </div>
             </div>
 
             <!-- Score, Math Stats & Buttons -->
-            <div class="glass-panel px-3 py-1.5 rounded-xl flex items-center space-x-3 shadow-lg text-xs md:text-sm pointer-events-auto">
-                <div class="flex items-center space-x-1.5">
+            <div id="hudRightPanel" class="glass-panel px-2 md:px-3 py-1 md:py-1.5 rounded-xl flex items-center shadow-lg text-[10px] sm:text-xs md:text-sm pointer-events-auto min-w-0">
+                <div class="flex items-center space-x-1 md:space-x-1.5">
                     <i class="fa-solid fa-trophy text-yellow-400"></i>
-                    <span class="font-bold text-yellow-200">Skor: <span id="scoreText" class="text-white">0</span></span>
+                    <span class="font-bold text-yellow-200"><span class="hud-label">Skor: </span><span id="scoreText" class="text-white">0</span></span>
                 </div>
-                <div class="h-4 w-px bg-slate-700"></div>
-                <div class="flex items-center space-x-1.5">
+                <div class="hud-divider h-4 w-px bg-slate-700"></div>
+                <div class="flex items-center space-x-1 md:space-x-1.5">
                     <i class="fa-solid fa-coins text-amber-400"></i>
                     <span class="font-bold text-amber-200"><span id="coinCount" class="text-white">0</span></span>
                 </div>
-                <div class="h-4 w-px bg-slate-700"></div>
-                <div class="flex items-center space-x-1.5">
+                <div class="hud-divider h-4 w-px bg-slate-700"></div>
+                <div class="flex items-center space-x-1 md:space-x-1.5">
                     <i class="fa-solid fa-brain text-purple-400"></i>
-                    <span class="font-bold text-purple-200">Soal: <span id="mathSolvedCount" class="text-white">0</span></span>
+                    <span class="font-bold text-purple-200"><span class="hud-label">Soal: </span><span id="mathSolvedCount" class="text-white">0</span></span>
                 </div>
-                <div class="h-4 w-px bg-slate-700"></div>
+                <div class="hud-divider h-4 w-px bg-slate-700"></div>
                 <!-- Tombol Papan Peringkat -->
-                <button id="hudLeaderboardBtn" title="Papan Peringkat" class="text-slate-300 hover:text-yellow-400 transition active:scale-95">
-                    <i class="fa-solid fa-ranking-star text-base"></i>
+                <button id="hudLeaderboardBtn" title="Papan Peringkat" class="text-slate-300 hover:text-yellow-400 transition active:scale-95 shrink-0">
+                    <i class="fa-solid fa-ranking-star text-sm md:text-base"></i>
                 </button>
-                <div class="h-4 w-px bg-slate-700"></div>
+                <div class="hud-divider h-4 w-px bg-slate-700"></div>
                 <!-- Tombol Pause -->
-                <button id="pauseBtn" title="Jeda" class="text-slate-300 hover:text-white transition active:scale-95">
-                    <i class="fa-solid fa-pause text-base"></i>
+                <button id="pauseBtn" title="Jeda" class="text-slate-300 hover:text-white transition active:scale-95 shrink-0">
+                    <i class="fa-solid fa-pause text-sm md:text-base"></i>
                 </button>
-                <div class="h-4 w-px bg-slate-700"></div>
+                <div class="hud-divider h-4 w-px bg-slate-700"></div>
                 <!-- Tombol Fullscreen -->
-                <button id="fullscreenBtn" title="Layar Penuh" class="text-slate-300 hover:text-white transition active:scale-95">
-                    <i class="fa-solid fa-expand text-base"></i>
+                <button id="fullscreenBtn" title="Layar Penuh" class="text-slate-300 hover:text-white transition active:scale-95 shrink-0">
+                    <i class="fa-solid fa-expand text-sm md:text-base"></i>
                 </button>
             </div>
         </div>
@@ -1071,9 +1149,9 @@
             static UPG_KEY = 'math_squad_upgrades';
 
             static DEFS = {
-                speed: { label: 'Base Speed', icon: 'fa-shoe-prints', desc: '+ Kecepatan gerak Leader & Squad', baseCost: 40, max: 5, step: 0.25 },
-                firerate: { label: 'Kecepatan Tembak', icon: 'fa-gun', desc: '- Jeda tembak otomatis Leader', baseCost: 50, max: 5, step: 1 },
-                durability: { label: 'Daya Tahan Leader', icon: 'fa-shield-heart', desc: '+ Nyawa cadangan Leader (tahan 1 hit tanpa gugur)', baseCost: 80, max: 3, step: 1 }
+                speed: { label: 'Base Speed', icon: 'fa-shoe-prints', desc: '+ Kecepatan gerak Leader & Squad', baseCost: 40, step: 0.25 },
+                firerate: { label: 'Kecepatan Tembak', icon: 'fa-gun', desc: '- Jeda tembak otomatis Leader', baseCost: 50, step: 1 },
+                durability: { label: 'Daya Tahan Leader', icon: 'fa-shield-heart', desc: '+ Nyawa cadangan Leader (tahan 1 hit tanpa gugur)', baseCost: 80, step: 1 }
             };
 
             static getCoins() {
@@ -1105,8 +1183,6 @@
             }
             static purchase(key) {
                 const levels = this.getLevels();
-                const def = this.DEFS[key];
-                if (levels[key] >= def.max) return false;
                 const cost = this.costFor(key, levels[key]);
                 if (!this.spendCoins(cost)) return false;
                 levels[key]++;
@@ -1121,9 +1197,8 @@
                 Object.keys(this.DEFS).forEach(key => {
                     const def = this.DEFS[key];
                     const lvl = levels[key];
-                    const maxed = lvl >= def.max;
-                    const cost = maxed ? 0 : this.costFor(key, lvl);
-                    const canAfford = !maxed && this.getCoins() >= cost;
+                    const cost = this.costFor(key, lvl);
+                    const canAfford = this.getCoins() >= cost;
                     const row = document.createElement('div');
                     row.className = "bg-slate-900/70 border border-slate-700 rounded-xl p-2.5 flex items-center justify-between";
                     row.innerHTML = `
@@ -1132,12 +1207,12 @@
                                 <i class="fa-solid ${def.icon}"></i>
                             </div>
                             <div class="text-left">
-                                <div class="text-xs font-bold text-white">${def.label} <span class="text-slate-400 font-medium">Lv.${lvl}/${def.max}</span></div>
+                                <div class="text-xs font-bold text-white">${def.label} <span class="text-slate-400 font-medium">Lv.${lvl}</span></div>
                                 <div class="text-[10px] text-slate-400">${def.desc}</div>
                             </div>
                         </div>
-                        <button data-key="${key}" class="upgBuyBtn shrink-0 ml-2 px-3 py-1.5 rounded-lg text-[11px] font-bold transition active:scale-95 ${maxed ? 'bg-emerald-700/40 text-emerald-300 pointer-events-none' : (canAfford ? 'bg-amber-600 hover:bg-amber-500 text-white' : 'bg-slate-800 text-slate-500 pointer-events-none')}">
-                            ${maxed ? 'MAX' : `<i class="fa-solid fa-coins mr-1"></i>${cost}`}
+                        <button data-key="${key}" class="upgBuyBtn shrink-0 ml-2 px-3 py-1.5 rounded-lg text-[11px] font-bold transition active:scale-95 ${canAfford ? 'bg-amber-600 hover:bg-amber-500 text-white' : 'bg-slate-800 text-slate-500 pointer-events-none'}">
+                            <i class="fa-solid fa-coins mr-1"></i>${cost}
                         </button>
                     `;
                     listEl.appendChild(row);
@@ -3254,13 +3329,31 @@
         }
 
         // --- Fullscreen Engine ---
-        function toggleFullscreen() {
+        // enterFullscreen() bersifat idempoten: hanya MENGAKTIFKAN layar penuh jika
+        // belum aktif, dan tidak melakukan apa-apa jika sudah dalam mode layar penuh.
+        // Ini dipakai di alur "mulai bermain" (klik Bertempur) agar status layar penuh
+        // yang sudah diaktifkan sejak halaman loading/menu awal TETAP terjaga, tidak
+        // ter-toggle mati.
+        function enterFullscreen() {
             if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().then(() => {
+                return document.documentElement.requestFullscreen().then(() => {
                     if (screen.orientation && screen.orientation.lock) {
                         screen.orientation.lock('landscape').catch(() => {});
                     }
                 }).catch(() => {});
+            }
+            // Sudah fullscreen: pastikan orientasi tetap terkunci landscape, tanpa keluar dari fullscreen.
+            if (screen.orientation && screen.orientation.lock) {
+                screen.orientation.lock('landscape').catch(() => {});
+            }
+            return Promise.resolve();
+        }
+
+        // toggleFullscreen() dipakai khusus oleh tombol yang memang bertugas
+        // menyalakan/mematikan layar penuh (tombol "Layar Penuh" di menu & HUD).
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                enterFullscreen();
             } else {
                 if (document.exitFullscreen) {
                     document.exitFullscreen();
@@ -3361,7 +3454,9 @@
 
         document.getElementById('startBtn').onclick = () => {
             sound.init();
-            toggleFullscreen();
+            // Gunakan enterFullscreen() (bukan toggleFullscreen()) supaya jika layar penuh
+            // sudah aktif sejak halaman awal, klik "Bertempur" ini TIDAK mematikannya.
+            enterFullscreen();
             document.getElementById('startModal').classList.add('hidden');
             initGame();
             isRunning = true;
@@ -3369,6 +3464,7 @@
 
         document.getElementById('restartBtn').onclick = () => {
             handleSaveScore(); // Simpan skor sebelum main lagi
+            enterFullscreen(); // Jaga agar tetap layar penuh saat main lagi
             document.getElementById('gameOverModal').classList.add('hidden');
             initGame();
             isRunning = true;
@@ -3405,6 +3501,36 @@
                 startModalEl.style.backgroundSize = 'cover';
                 startModalEl.style.backgroundPosition = 'center top';
                 startModalEl.style.backgroundRepeat = 'no-repeat';
+            }
+
+            // Halaman "PASUKAN GUGUR!" (Game Over) memakai gambar background yang sama
+            // persis dengan halaman loading. Gambarnya diambil lewat JS dari coverScreen
+            // (bukan disalin ulang sebagai base64 baru), sehingga ukuran file HTML tidak
+            // bertambah sama sekali.
+            const gameOverModalEl = document.getElementById('gameOverModal');
+            if (gameOverModalEl && coverScreen && coverScreen.style.backgroundImage) {
+                gameOverModalEl.style.backgroundImage = coverScreen.style.backgroundImage;
+                gameOverModalEl.style.backgroundSize = 'cover';
+                gameOverModalEl.style.backgroundPosition = 'center top';
+                gameOverModalEl.style.backgroundRepeat = 'no-repeat';
+            }
+
+            // Halaman "TOKO UPGRADE" dan "PAPAN PERINGKAT" juga memakai gambar background
+            // yang sama persis dengan halaman loading, dengan cara yang sama (tanpa
+            // menyalin ulang gambar sebagai base64 baru).
+            const upgradeShopModalEl = document.getElementById('upgradeShopModal');
+            if (upgradeShopModalEl && coverScreen && coverScreen.style.backgroundImage) {
+                upgradeShopModalEl.style.backgroundImage = coverScreen.style.backgroundImage;
+                upgradeShopModalEl.style.backgroundSize = 'cover';
+                upgradeShopModalEl.style.backgroundPosition = 'center top';
+                upgradeShopModalEl.style.backgroundRepeat = 'no-repeat';
+            }
+            const leaderboardModalEl = document.getElementById('leaderboardModal');
+            if (leaderboardModalEl && coverScreen && coverScreen.style.backgroundImage) {
+                leaderboardModalEl.style.backgroundImage = coverScreen.style.backgroundImage;
+                leaderboardModalEl.style.backgroundSize = 'cover';
+                leaderboardModalEl.style.backgroundPosition = 'center top';
+                leaderboardModalEl.style.backgroundRepeat = 'no-repeat';
             }
 
             function switchScreen(hideEl, showEl) {
